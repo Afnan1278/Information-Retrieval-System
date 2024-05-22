@@ -1,7 +1,17 @@
 # Contains all functions that deal with stop word removal.
-
+import json
+import os
+import string
+from collections import Counter
 from document import Document
-
+try:
+    DATA_PATH = 'data'
+    STOPWORD_FILE_PATH = os.path.join(DATA_PATH, 'stopwords.json')
+    with open(STOPWORD_FILE_PATH, 'r') as f:
+        stop_word_list = json.load(f)
+except FileNotFoundError:
+            print('No stopword list was found.')
+            stop_word_list = []
 
 def remove_symbols(text_string: str) -> str:
     """
@@ -11,19 +21,20 @@ def remove_symbols(text_string: str) -> str:
     :return:
     """
 
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('Not implemented yet!')
+    text_string = text_string.replace("'s", "")
+    text_string = text_string.translate(str.maketrans('', '', string.punctuation))
+    return text_string
 
 
-def is_stop_word(term: str, stop_word_list: list[str]) -> bool:
+def is_stop_word(term: str) -> bool:
+    
     """
     Checks if a given term is a stop word.
     :param stop_word_list: List of all considered stop words.
     :param term: The term to be checked.
     :return: True if the term is a stop word.
     """
-    # TODO: Implement this function  (PR02)
-    raise NotImplementedError('Not implemented yet!')
+    return term in stop_word_list
 
 
 def remove_stop_words_from_term_list(term_list: list[str]) -> list[str]:
@@ -33,8 +44,7 @@ def remove_stop_words_from_term_list(term_list: list[str]) -> list[str]:
     :return: List of terms without stop words
     """
     # Hint:  Implement the functions remove_symbols() and is_stop_word() first and use them here.
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('Not implemented yet!')
+    return [term for term in term_list if not is_stop_word(term)]
 
 
 def filter_collection(collection: list[Document]):
@@ -44,8 +54,8 @@ def filter_collection(collection: list[Document]):
     :param collection: Document collection to process
     """
     # Hint:  Implement remove_stop_words_from_term_list first and use it here.
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('To be implemented in PR02')
+    for document in collection:
+        document.filtered_terms = remove_stop_words_from_term_list(document.terms)
 
 
 def load_stop_word_list(raw_file_path: str) -> list[str]:
@@ -55,9 +65,9 @@ def load_stop_word_list(raw_file_path: str) -> list[str]:
     :param raw_file_path: Path to the text file that contains the stop words
     :return: List of stop words
     """
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('To be implemented in PR02')
-
+    with open(raw_file_path, 'r') as f:
+        stop_word_list = f.read().splitlines()
+    return stop_word_list
 
 def create_stop_word_list_by_frequency(collection: list[Document]) -> list[str]:
     """
@@ -66,5 +76,23 @@ def create_stop_word_list_by_frequency(collection: list[Document]) -> list[str]:
     :param collection: Collection to process
     :return: List of stop words
     """
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('To be implemented in PR02')
+    all_terms = []
+    for document in collection:
+        for term in document.terms:
+            all_terms.append(term)
+    
+    term_frequency = Counter(all_terms)
+    
+    # Sort the terms by frequency in descending order
+    sorted_terms = sorted(term_frequency.items(), key=lambda x: x[1], reverse=True)
+    
+    # Determine the high and low frequency terms. high frequency terms are the 10% most frequent terms, low frequency terms are the 10% least frequent terms
+    num_terms = len(sorted_terms)
+    high_frequency_terms = [term for term, freq in sorted_terms[:num_terms//10]]
+    low_frequency_terms = [term for term, freq in sorted_terms[-num_terms//10:]]
+    
+    # Combine the high and low frequency terms to create the stop word list
+    stop_word_list = high_frequency_terms + low_frequency_terms
+    
+    return stop_word_list
+    

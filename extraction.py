@@ -10,10 +10,34 @@ def extract_collection(source_file_path: str) -> list[Document]:
     :param source_file_name: File name of the file that contains the fables
     :return: List of Document objects
     """
-    catalog = []  # This dictionary will store the document raw_data.
-
-    # TODO: Implement this function. (PR02)
-    raise NotImplementedError('Not implemented yet!')
+    with open(source_file_path, "r") as json_file:
+        lines = json_file.readlines()
+    # Ignore lines until "Aesop's Fables"
+    while lines:
+        if lines.pop(0).strip() == "Aesop's Fables":
+            break
+    catalog = []
+    document_id = 0
+    i = 0
+    while i < len(lines):
+        if lines[i].strip() == "" and i+3 < len(lines) and lines[i+1].strip() == "" and lines[i+2].strip() == "" and lines[i+3].strip() != "":
+            i += 3
+            title = lines[i].strip()
+            i += 3
+            raw_text = ""
+            while i < len(lines) and lines[i].strip() != "":
+                raw_text += lines[i].strip() + " "
+                i += 1
+            terms = raw_text.split()
+            document = Document()
+            document.document_id = document_id
+            document.title = title
+            document.raw_text = raw_text
+            document.terms = terms
+            catalog.append(document)
+            document_id += 1
+        else:
+            i += 1
 
     return catalog
 

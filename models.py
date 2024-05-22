@@ -40,9 +40,20 @@ class RetrievalModel(ABC):
 
 
 class LinearBooleanModel(RetrievalModel):
-    # TODO: Implement all abstract methods and __init__() in this class. (PR02)
     def __init__(self):
-        raise NotImplementedError()  # TODO: Remove this line and implement the function.
+        self.collection = []
+
+    def document_to_representation(self, document: Document, stopword_filtering=False, stemming=False):
+        # In a Boolean model, the document representation is just the set of terms in the document
+        return set(document.terms)
+
+    def query_to_representation(self, query: str):
+        # The query representation is just the query term itself
+        return query
+
+    def match(self, document_representation, query_representation) -> float:
+        # The match function returns 1 if the query term is in the document, and 0 otherwise
+        return float(query_representation in document_representation)
 
     def __str__(self):
         return 'Boolean Model (Linear)'
